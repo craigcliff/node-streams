@@ -1,0 +1,5 @@
+node_modules
+read/node_modules
+write/node_modules
+duplex/node_modules
+transform/node_modules
