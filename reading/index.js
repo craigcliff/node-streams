@@ -10,7 +10,14 @@ const main = async () => {
   const myTransform = new Transform({
     objectMode: true,
     transform(chunk, enc, callback) {
-      console.log("chunk: >> ", chunk);
+      const user = {
+        name: chunk.name,
+        email: chunk.email.toLowerCase(),
+        age: +chunk.age,
+        salary: +chunk.salary,
+        isActive: chunk.isActive === "true",
+      };
+      console.log("chunk: >> ", user);
 
       // callback method is required for stream to continue
       callback(null, chunk);
