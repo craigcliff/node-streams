@@ -5,8 +5,8 @@ const csv = require("csvtojson");
 const { Transform } = require("stream");
 const { pipeline } = require("stream/promises");
 const user = require("./user");
-const { createGzip } = require("zlib");
 const UserModel = require("./user");
+const bufferingObjectStream = require("buffering-object-stream");
 
 const main = async () => {
   await mongoose.connect("mongodb://localhost:27017/myapp");
@@ -53,6 +53,16 @@ const main = async () => {
     },
   });
 
+  const saveUsers = new Transform({
+    objectMode: true,
+    async transform(users, enc, callback) {
+      const promises = users.map((user) => UserModel.create(user));
+      await Promise.all(promises);
+
+      callback(null);
+    },
+  });
+
   try {
     await pipeline(
       readStream,
@@ -66,10 +76,12 @@ const main = async () => {
         }
       ),
       myTransform,
-      myFilter,
-      saveUser
+      //myFilter,
+      bufferingObjectStream(100),
+      saveUsers
     );
     console.log("Stream successful");
+    process.exit(0);
   } catch (error) {
     console.log("An error has occurred: ", error);
   }
