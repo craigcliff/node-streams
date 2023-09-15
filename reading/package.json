@@ -15,6 +15,6 @@
     "dependencies": {
         "buffering-object-stream": "^1.0.1",
         "csvtojson": "^2.0.10",
-        "mongoose": "^6.3.3"
+        "mongoose": "^6.12.0"
     }
 }

@@ -1,11 +1,15 @@
+const mongoose = require("mongoose");
+
 const fs = require("fs");
 const csv = require("csvtojson");
 const { Transform } = require("stream");
 const { pipeline } = require("stream/promises");
 const user = require("./user");
 const { createGzip } = require("zlib");
+const UserModel = require("./user");
 
 const main = async () => {
+  await mongoose.connect("mongodb://localhost:27017/myapp");
   const readStream = fs.createReadStream("./data/import.csv");
 
   const myTransform = new Transform({
@@ -41,12 +45,11 @@ const main = async () => {
     },
   });
 
-  const convertToNdJson = new Transform({
+  const saveUser = new Transform({
     objectMode: true,
-    transform(user, enc, callback) {
-      const ndjson = JSON.stringify(user) + "\n";
-      this.push(ndjson);
-      callback();
+    async transform(user, enc, callback) {
+      await UserModel.create(user);
+      callback(null);
     },
   });
 
@@ -64,9 +67,7 @@ const main = async () => {
       ),
       myTransform,
       myFilter,
-      convertToNdJson,
-      createGzip(),
-      fs.createWriteStream("./data/export.ndjson")
+      saveUser
     );
     console.log("Stream successful");
   } catch (error) {
