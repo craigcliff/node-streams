@@ -56,8 +56,15 @@ const main = async () => {
   const saveUsers = new Transform({
     objectMode: true,
     async transform(users, enc, callback) {
-      const promises = users.map((user) => UserModel.create(user));
-      await Promise.all(promises);
+      //   const promises = users.map((user) => UserModel.create(user));
+      //   await Promise.all(promises);
+      await UserModel.bulkWrite(
+        users.map((user) => ({
+          insertOne: {
+            document: user,
+          },
+        }))
+      );
 
       callback(null);
     },
@@ -77,7 +84,7 @@ const main = async () => {
       ),
       myTransform,
       //myFilter,
-      bufferingObjectStream(100),
+      bufferingObjectStream(400),
       saveUsers
     );
     console.log("Stream successful");
