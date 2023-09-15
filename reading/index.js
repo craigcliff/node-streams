@@ -83,7 +83,8 @@ const main = async () => {
         }
       ),
       myTransform,
-      //myFilter,
+      //myFilter,his allows us to load a certain amount of objects in memory at any given time
+      //  T
       bufferingObjectStream(400),
       saveUsers
     );
