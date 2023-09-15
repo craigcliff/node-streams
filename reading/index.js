@@ -6,12 +6,19 @@ const main = async () => {
     highWaterMark: 100,
   });
 
+  const writeStream = fs.createWriteStream("./data/exports.csv");
+
   readStream.on("data", (buffer) => {
     console.log("data: ", buffer.toString());
+
+    // writeStream accepts a buffer or string
+    writeStream.write(buffer);
   });
 
   readStream.on("end", () => {
     console.log("Stream ended");
+
+    writeStream.end();
   });
 };
 
