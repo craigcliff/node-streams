@@ -7,6 +7,16 @@ const main = async () => {
 
   const writeStream = fs.createWriteStream("./data/exports.csv");
 
+  const myTransform = new Transform({
+    objectMode: true,
+    transform(chunk, enc, callback) {
+      console.log("chunk: >> ", chunk);
+
+      // callback method is required for stream to continue
+      callback(null, chunk);
+    },
+  });
+
   readStream
     .pipe(
       csv(
@@ -19,24 +29,10 @@ const main = async () => {
         }
       )
     )
-    .pipe(
-      new Transform({
-        objectMode: true,
-        transform(chunk, enc, callback) {
-          console.log("chunk: >> ", chunk);
-
-          // callback method is required for stream to continue
-          callback("Some error");
-        },
-      })
-    )
+    .pipe(myTransform)
     .on("data", (data) => {
       console.log("data: ", data);
     })
-    .on("error", (error) => {
-      console.log("Stream error: ", error);
-    })
-    // Stream doesn't end if error is called
     .on("end", () => {
       console.log("Stream ended");
     });
