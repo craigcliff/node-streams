@@ -1,12 +1,10 @@
 const fs = require("fs");
 const csv = require("csvtojson");
-const { Transform } = require("stream");
+const { Transform, pipeline } = require("stream");
 const user = require("./user");
 
-const main = async (cb) => {
+const main = async () => {
   const readStream = fs.createReadStream("./data/import.csv");
-
-  const writeStream = fs.createWriteStream("./data/exports.csv");
 
   const myTransform = new Transform({
     objectMode: true,
@@ -20,52 +18,46 @@ const main = async (cb) => {
       };
 
       // callback method is required for stream to continue
-      callback(null, user);
+      this.push(user);
+      callback();
     },
   });
 
   const myFilter = new Transform({
     objectMode: true,
     transform(user, enc, callback) {
-      const lowSalary = user.salary < 1000;
-      if (!user.isActive || lowSalary) {
-        this.push(user);
+      if (!user.isActive) {
+        callback(null);
+        return;
       }
 
-      // Continue processing
-      callback();
+      console.log("User: ", user);
+      callback(null);
     },
   });
 
-  readStream
-    .pipe(
-      csv(
-        {
-          delimiter: ";",
-        },
-        // built in node function that trasforms streams into objects
-        {
-          objectMode: true,
-        }
-      )
-    )
-    .pipe(myTransform)
-    .pipe(myFilter)
-    .on("error", (error) => {
-      console.log("stream error: ", error);
-      cb(error);
-    })
-    .on("data", (data) => {
-      console.log("data: >>>>> ", data);
-    })
-    .on("error", (error) => {
-      console.log("stream error: ", error);
-      cb(error);
-    })
-    .on("end", () => {
-      console.log("Stream ended");
-      cb(null);
-    });
+  await pipeline(
+    readStream,
+    csv(
+      {
+        delimiter: ";",
+      },
+      // built in node function that trasforms streams into objects
+      {
+        objectMode: true,
+      }
+    ),
+    myTransform,
+    myFilter,
+    // the last argument is a callback
+    (error) => {
+      if (error) {
+        console.error("err: ", error);
+      } else {
+        console.log("pipeline successful");
+      }
+    }
+  );
 };
 
 main();
