@@ -3,7 +3,7 @@ const csv = require("csvtojson");
 const { Transform } = require("stream");
 const user = require("./user");
 
-const main = async () => {
+const main = async (cb) => {
   const readStream = fs.createReadStream("./data/import.csv");
 
   const writeStream = fs.createWriteStream("./data/exports.csv");
@@ -51,11 +51,20 @@ const main = async () => {
     )
     .pipe(myTransform)
     .pipe(myFilter)
+    .on("error", (error) => {
+      console.log("stream error: ", error);
+      cb(error);
+    })
     .on("data", (data) => {
       console.log("data: >>>>> ", data);
     })
+    .on("error", (error) => {
+      console.log("stream error: ", error);
+      cb(error);
+    })
     .on("end", () => {
       console.log("Stream ended");
+      cb(null);
     });
 };
 
