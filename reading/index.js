@@ -33,7 +33,19 @@ const main = async () => {
       }
 
       console.log("User: ", user);
+
+      //  Need to send data to next transformer - only last transformer does not need to push data.
+      this.push(user);
       callback(null);
+    },
+  });
+
+  const convertToNdJson = new Transform({
+    objectMode: true,
+    transform(user, enc, callback) {
+      const value = JSON.stringify(user) + "\n";
+      this.push(value);
+      callback();
     },
   });
 
@@ -50,7 +62,9 @@ const main = async () => {
         }
       ),
       myTransform,
-      myFilter
+      myFilter,
+      convertToNdJson,
+      fs.createWriteStream("./data/export.ndjson")
     );
     console.log("Stream successful");
   } catch (error) {
