@@ -3,6 +3,7 @@ const csv = require("csvtojson");
 const { Transform } = require("stream");
 const { pipeline } = require("stream/promises");
 const user = require("./user");
+const { createGzip } = require("zlib");
 
 const main = async () => {
   const readStream = fs.createReadStream("./data/import.csv");
@@ -43,8 +44,8 @@ const main = async () => {
   const convertToNdJson = new Transform({
     objectMode: true,
     transform(user, enc, callback) {
-      const value = JSON.stringify(user) + "\n";
-      this.push(value);
+      const ndjson = JSON.stringify(user) + "\n";
+      this.push(ndjson);
       callback();
     },
   });
@@ -64,6 +65,7 @@ const main = async () => {
       myTransform,
       myFilter,
       convertToNdJson,
+      createGzip(),
       fs.createWriteStream("./data/export.ndjson")
     );
     console.log("Stream successful");
