@@ -1,6 +1,7 @@
 const fs = require("fs");
 const csv = require("csvtojson");
-const { Transform, pipeline } = require("stream");
+const { Transform } = require("stream");
+const { pipeline } = require("stream/promises");
 const user = require("./user");
 
 const main = async () => {
@@ -36,28 +37,25 @@ const main = async () => {
     },
   });
 
-  await pipeline(
-    readStream,
-    csv(
-      {
-        delimiter: ";",
-      },
-      // built in node function that trasforms streams into objects
-      {
-        objectMode: true,
-      }
-    ),
-    myTransform,
-    myFilter,
-    // the last argument is a callback
-    (error) => {
-      if (error) {
-        console.error("err: ", error);
-      } else {
-        console.log("pipeline successful");
-      }
-    }
-  );
+  try {
+    await pipeline(
+      readStream,
+      csv(
+        {
+          delimiter: ";",
+        },
+        // built in node function that trasforms streams into objects
+        {
+          objectMode: true,
+        }
+      ),
+      myTransform,
+      myFilter
+    );
+    console.log("Stream successful");
+  } catch (error) {
+    console.log("An error has occurred: ", error);
+  }
 };
 
 main();
