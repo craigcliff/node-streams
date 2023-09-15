@@ -1,6 +1,7 @@
 const fs = require("fs");
 const csv = require("csvtojson");
 const { Transform } = require("stream");
+const user = require("./user");
 
 const main = async () => {
   const readStream = fs.createReadStream("./data/import.csv");
@@ -17,10 +18,22 @@ const main = async () => {
         salary: +chunk.salary,
         isActive: chunk.isActive === "true",
       };
-      console.log("chunk: >> ", user);
 
       // callback method is required for stream to continue
-      callback(null, chunk);
+      callback(null, user);
+    },
+  });
+
+  const myFilter = new Transform({
+    objectMode: true,
+    transform(user, enc, callback) {
+      const lowSalary = user.salary < 1000;
+      if (!user.isActive || lowSalary) {
+        this.push(user);
+      }
+
+      // Continue processing
+      callback();
     },
   });
 
@@ -37,8 +50,9 @@ const main = async () => {
       )
     )
     .pipe(myTransform)
+    .pipe(myFilter)
     .on("data", (data) => {
-      console.log("data: ", data);
+      console.log("data: >>>>> ", data);
     })
     .on("end", () => {
       console.log("Stream ended");
