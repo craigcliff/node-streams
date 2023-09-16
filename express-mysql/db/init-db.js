@@ -22,7 +22,8 @@ async function initDatabase() {
     await connection.query("CREATE DATABASE IF NOT EXISTS my_app;");
     await connection.query("USE my_app;");
 
-    await connection.query("DROP TABLE IF EXISTS users");
+    // Delete table
+    // await connection.query("DROP TABLE IF EXISTS users");
 
     // Create user table if it doesn't exist
     await connection.query(`
